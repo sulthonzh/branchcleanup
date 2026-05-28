@@ -1,6 +1,6 @@
 {
   "name": "branchcleanup",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Smart Git branch cleanup CLI that detects squash-merged branches with interactive deletion",
   "main": "dist/index.js",
   "bin": {

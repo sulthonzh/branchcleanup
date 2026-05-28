@@ -1,5 +1,6 @@
 import simpleGit, { SimpleGit } from 'simple-git';
 import chalk from 'chalk';
+import inquirer from 'inquirer';
 import { CleanupOptions } from './types';
 import { listBranches } from './branch-detector';
 
@@ -37,7 +38,7 @@ export async function cleanupBranches(options: CleanupOptions): Promise<void> {
   // Interactive mode
   console.log(chalk.bold('\n🎯 Interactive Branch Cleanup\n'));
   
-  const inquirer = (await import('inquirer')) as any;
+
   
   for (const branch of deletableBranches) {
     const answer = await inquirer.prompt([

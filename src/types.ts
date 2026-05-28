@@ -5,6 +5,12 @@ export interface BranchInfo {
   lastCommit: string | null;
 }
 
+export interface Branch {
+  name: string;
+  type: 'merged' | 'squash-merged' | 'stale';
+  safeToDelete: boolean;
+}
+
 export interface CleanupOptions {
   dryRun: boolean;
   force: boolean;

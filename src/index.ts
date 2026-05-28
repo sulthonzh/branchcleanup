@@ -6,6 +6,18 @@ import { listBranches } from './branch-detector';
 import { cleanupBranches } from './interactive';
 import { loadConfig } from './config';
 
+interface CommandOptions {
+  staleThreshold?: string;
+  dryRun?: boolean;
+  force?: boolean;
+}
+
+interface Branch {
+  name: string;
+  type: 'merged' | 'squash-merged' | 'stale-30d' | 'stale-60d' | 'stale-90d' | 'active' | 'unknown';
+  safeToDelete: boolean;
+}
+
 const program = new Command();
 const config = loadConfig();
 
@@ -18,12 +30,13 @@ program
   .command('list')
   .description('List branches with their status')
   .option('--stale-threshold <days>', 'Stale branch threshold in days', config.staleThreshold.toString())
-  .action(async (options: any) => {
+  .action(async (options: CommandOptions) => {
     try {
-      const branches = await listBranches(parseInt(options.staleThreshold));
+      const branches = await listBranches(parseInt(options.staleThreshold || config.staleThreshold.toString()));
       displayBranchTable(branches);
-    } catch (error: any) {
-      console.error(chalk.red(`Error: ${error.message}`));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error(chalk.red(`Error: ${errorMessage}`));
       process.exit(1);
     }
   });
@@ -34,22 +47,23 @@ program
   .option('--dry-run', 'Show what would be deleted without actually deleting', false)
   .option('--force', 'Bypass confirmation prompts', false)
   .option('--stale-threshold <days>', 'Stale branch threshold in days', config.staleThreshold.toString())
-  .action(async (options: any) => {
+  .action(async (options: CommandOptions) => {
     try {
       await cleanupBranches({
-        dryRun: options.dryRun,
-        force: options.force,
-        staleThreshold: parseInt(options.staleThreshold)
+        dryRun: options.dryRun || false,
+        force: options.force || false,
+        staleThreshold: parseInt(options.staleThreshold || config.staleThreshold.toString())
       });
-    } catch (error: any) {
-      console.error(chalk.red(`Error: ${error.message}`));
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.error(chalk.red(`Error: ${errorMessage}`));
       process.exit(1);
     }
   });
 
 program.parse();
 
-function displayBranchTable(branches: any[]) {
+function displayBranchTable(branches: Branch[]) {
   if (branches.length === 0) {
     console.log(chalk.yellow('No branches found to clean up.'));
     return;
@@ -76,7 +90,7 @@ function displayBranchTable(branches: any[]) {
   
   // Summary
   const deletable = branches.filter(b => b.safeToDelete);
-  const stale = branches.filter(b => b.type === 'stale');
+  const stale = branches.filter(b => b.type.startsWith('stale-'));
   
   console.log(chalk.bold('\n📊 Summary:'));
   console.log(`Total branches: ${branches.length}`);

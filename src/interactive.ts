@@ -1,4 +1,4 @@
-import simpleGit from 'simple-git';
+import simpleGit, { SimpleGit } from 'simple-git';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { CleanupOptions } from './types';
@@ -58,12 +58,13 @@ export async function cleanupBranches(options: CleanupOptions): Promise<void> {
   console.log(chalk.green('\n✅ Cleanup completed!'));
 }
 
-async function deleteBranch(git: any, branchName: string): Promise<void> {
+async function deleteBranch(git: SimpleGit, branchName: string): Promise<void> {
   try {
     await git.deleteLocalBranch(branchName);
     console.log(chalk.green(`✅ Deleted ${branchName}`));
-  } catch (error: any) {
-    console.log(chalk.red(`❌ Failed to delete ${branchName}: ${error.message}`));
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    console.log(chalk.red(`❌ Failed to delete ${branchName}: ${errorMessage}`));
     throw error;
   }
 }

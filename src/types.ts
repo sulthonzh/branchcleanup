@@ -1,8 +1,9 @@
 export interface BranchInfo {
   name: string;
-  type: 'merged' | 'squash-merged' | 'stale-30d' | 'stale-60d' | 'stale-90d' | 'active' | 'unknown';
+  type: 'merged' | 'squash-merged' | `stale-${string}` | 'active' | 'unknown' | 'remote-merged' | 'remote-stale';
   safeToDelete: boolean;
   lastCommit: string | null;
+  isRemote?: boolean;
 }
 
 export interface Branch {
@@ -15,6 +16,7 @@ export interface CleanupOptions {
   dryRun: boolean;
   force: boolean;
   staleThreshold: number;
+  includeRemote?: boolean;
 }
 
 export interface Config {

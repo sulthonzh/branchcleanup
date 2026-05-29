@@ -26,6 +26,9 @@ branchcleanup list
 
 # List with custom stale threshold (60 days)
 branchcleanup list --stale-threshold=60
+
+# Include remote branches in the list
+branchcleanup list --include-remote
 ```
 
 ### Interactive cleanup
@@ -39,6 +42,9 @@ branchcleanup cleanup --dry-run
 
 # Force delete (bypass confirmation)
 branchcleanup cleanup --force
+
+# Include remote branches in cleanup
+branchcleanup cleanup --include-remote
 ```
 
 ### Options
@@ -110,6 +116,14 @@ The tool detects three types of branches:
 1. **Merged branches**: Detected using `git branch --merged`
 2. **Squash-merged branches**: Detected by checking if all commits from the branch exist in the target branch
 3. **Stale branches**: Branches not touched in the specified number of days (default: 30)
+
+### Remote Branch Support
+
+With the `--include-remote` flag, the tool can also detect and clean up remote branches:
+
+- **Remote merged branches**: Branches merged on the remote repository
+- **Remote stale branches**: Remote branches not updated within the threshold
+- **Safe deletion**: Remote branches are pushed to `--delete` on their respective remotes
 
 ### Safety Features
 

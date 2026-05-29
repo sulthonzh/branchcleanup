@@ -1,7 +1,7 @@
 import simpleGit, { SimpleGit } from 'simple-git';
 import { BranchInfo } from './types';
 
-export async function listBranches(staleThreshold: number = 30): Promise<BranchInfo[]> {
+export async function listBranches(staleThreshold: number = 30, includeRemote: boolean = false): Promise<BranchInfo[]> {
   const git = simpleGit();
   
   // Get current branch
@@ -9,11 +9,13 @@ export async function listBranches(staleThreshold: number = 30): Promise<BranchI
   const currentBranchName = currentBranch.current;
   
   // Get all branches
-  const allBranches = await git.branchLocal();
+  const allBranches = includeRemote ? await git.branch() : await git.branchLocal();
   
   // Get merged branches
   const mergedBranches = await git.branch(['--merged']);
-  const mergedBranchNames = mergedBranches.all.map(b => b.replace(/^\*?\s*/, ''));
+  const mergedBranchNames = mergedBranches.all
+    .map(b => b.replace(/^\*?\s*/, ''))
+    .filter(b => !includeRemote || !b.includes('/')); // Filter out remote branches if not included
   
   // Get commit hashes for squash detection
   const mainBranch = currentBranchName === 'main' ? 'main' : 
@@ -56,7 +58,7 @@ export async function listBranches(staleThreshold: number = 30): Promise<BranchI
       branchInfo.type = 'squash-merged';
       branchInfo.safeToDelete = true;
     } else if (isStale) {
-      branchInfo.type = 'stale-30d'; // Default to 30d, can be configured
+      branchInfo.type = `stale-${staleThreshold}d`;
       branchInfo.safeToDelete = true; // Stale branches are safe to delete by default
     } else {
       branchInfo.type = 'active';
@@ -105,11 +107,12 @@ async function isBranchStale(git: SimpleGit, branchName: string, thresholdDays: 
     const log = await git.log([`--since=${thresholdDays} days ago`, branchName]);
     return log.total === 0;
   } catch (error) {
+    // If we can't get log info, assume it's not stale to be safe
     return false;
   }
 }
 
 function isProtectedBranch(branchName: string): boolean {
-  const protectedBranches = ['main', 'master', 'develop', 'dev'];
+  const protectedBranches = ['main', 'master', 'develop', 'dev', 'production'];
   return protectedBranches.includes(branchName);
 }

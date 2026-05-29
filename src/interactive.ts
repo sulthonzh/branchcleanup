@@ -4,12 +4,17 @@ import inquirer from 'inquirer';
 import { CleanupOptions } from './types';
 import { listBranches } from './branch-detector';
 
-export async function cleanupBranches(options: CleanupOptions): Promise<void> {
-  const git = simpleGit();
+// Allow dependency injection for testing
+export const createGitInstance = (customGit?: SimpleGit) => {
+  return customGit || simpleGit();
+};
+
+export async function cleanupBranches(options: CleanupOptions, customGit?: SimpleGit): Promise<void> {
+  const git = createGitInstance(customGit);
   
   console.log(chalk.blue('🔍 Detecting branches to clean up...\n'));
   
-  const branches = await listBranches(options.staleThreshold);
+  const branches = await listBranches(options.staleThreshold, options.includeRemote);
   const deletableBranches = branches.filter(b => b.safeToDelete);
   
   if (deletableBranches.length === 0) {
@@ -60,13 +65,20 @@ export async function cleanupBranches(options: CleanupOptions): Promise<void> {
   console.log(chalk.green('\n✅ Cleanup completed!'));
 }
 
-async function deleteBranch(git: SimpleGit, branchName: string): Promise<void> {
+export async function deleteBranch(git: SimpleGit, branchName: string): Promise<void> {
   try {
-    await git.deleteLocalBranch(branchName);
-    console.log(chalk.green(`✅ Deleted ${branchName}`));
+    // Check if it's a remote branch (contains '/')
+    if (branchName.includes('/')) {
+      const [remote, branch] = branchName.split('/', 2);
+      await git.push(['remote', remote, '--delete', branch]);
+      console.log(chalk.green(`✅ Deleted remote branch ${branchName}`));
+    } else {
+      await git.deleteLocalBranch(branchName);
+      console.log(chalk.green(`✅ Deleted local branch ${branchName}`));
+    }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     console.log(chalk.red(`❌ Failed to delete ${branchName}: ${errorMessage}`));
-    throw error;
+    // Don't throw the error to continue with other branches
   }
 }

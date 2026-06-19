@@ -31,3 +31,11 @@ Thumbs.db
 # Coverage reports
 coverage/
 .nyc_output
+# Build output (additional)
+build/
+
+# Python
+__pycache__/
+.venv/
+*.egg-info/
+.mypy_cache/

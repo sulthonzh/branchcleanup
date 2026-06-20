@@ -5,9 +5,14 @@ module.exports = {
     'plugin:@typescript-eslint/recommended'
   ],
   plugins: ['@typescript-eslint'],
+  parserOptions: {
+    ecmaVersion: 2020,
+    sourceType: 'module'
+  },
   env: {
     node: true,
-    es2020: true
+    es2020: true,
+    jest: true
   },
   rules: {
     '@typescript-eslint/no-unused-vars': 'error',
@@ -15,6 +20,7 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-inferrable-types': 'off',
     'prefer-const': 'error',
-    'no-var': 'error'
+    'no-var': 'error',
+    'no-console': 'off'
   }
 };

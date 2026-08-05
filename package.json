@@ -30,7 +30,7 @@
   "dependencies": {
     "chalk": "^6.0.0",
     "cli-spinner": "^0.2.10",
-    "commander": "^11.1.0",
+    "commander": "^15.0.0",
     "inquirer": "^14.0.0",
     "simple-git": "^3.20.0"
   },
